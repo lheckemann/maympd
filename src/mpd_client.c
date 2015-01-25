@@ -21,11 +21,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <mpd/client.h>
+#include <mpd/recv.h>
 
 #include "mpd_client.h"
 #include "config.h"
 #include "json_encode.h"
+#include "dl_download.h"
 
 /* forward declaration */
 static int mpd_notify_callback(struct mg_connection *c, enum mg_event ev);
@@ -228,6 +232,13 @@ out_save_queue:
             n = mpd_search(mpd.buf, get_arg1(p_charbuf));
 out_search:
             free(p_charbuf);
+            break;
+        case MPD_DOWNLOAD:
+			if(sscanf(c->content, "MPD_DOWNLOAD,%m[^\t\n]", &p_charbuf) && p_charbuf != NULL)
+            {
+				n = mpd_download(mpd.buf, mpd.music_path, p_charbuf);
+                free(p_charbuf);
+            }
             break;
 #ifdef WITH_MPD_HOST_CHANGE
         /* Commands allowed when disconnected from MPD server */
@@ -580,6 +591,28 @@ int mpd_put_queue(char *buffer, unsigned int offset)
     return cur - buffer;
 }
 
+
+int mpd_download(char *buffer, char *path, char *url)
+{
+	char *cur = buffer;
+    const char *end = buffer + MAX_SIZE;
+	
+	struct stat s;
+	if (stat(path, &s) == -1 || (stat(path, &s) != -1 && !S_ISDIR(s.st_mode))){
+		fprintf(stderr, "MPD Download: please specify the path to music directory with -m option.\n");
+		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"nodir\"}");
+	}
+				
+    else if (download_stream(url, mpd.music_path) == 0){
+		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"complete\"}");
+	}
+	else{
+		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"failure\"}");
+	}
+
+    return cur - buffer;
+}
+
 int mpd_put_browse(char *buffer, char *path, unsigned int offset)
 {
     char *cur = buffer;
@@ -613,6 +646,7 @@ int mpd_put_browse(char *buffer, char *path, unsigned int offset)
         }
 
         switch (mpd_entity_get_type(entity)) {
+			
             case MPD_ENTITY_TYPE_UNKNOWN:
                 break;
 

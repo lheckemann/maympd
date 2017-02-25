@@ -700,6 +700,14 @@ function addStream() {
     $('#addstream').modal('hide');
 }
 
+function addSoundcloudPlaylist() {
+    if($('#streamurl').val().length > 0) {
+    	socket.send('MPD_API_ADD_PLAYLIST,soundcloud://url/'+$('#streamurl').val());
+    }
+    $('#streamurl').val("");
+    $('#addstream').modal('hide');
+}
+
 function saveQueue() {
     if($('#playlistname').val().length > 0) {
     	socket.send('MPD_API_SAVE_QUEUE,'+$('#playlistname').val());

@@ -429,7 +429,10 @@ char* mpd_get_title(struct mpd_song const *song)
     char *str;
 
     str = (char *)mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-    if(str == NULL){
+    if(str == NULL) {
+        str = (char *)mpd_song_get_tag(song, MPD_TAG_NAME, 0);
+    }
+    if(str == NULL) {
         str = basename((char *)mpd_song_get_uri(song));
     }
 

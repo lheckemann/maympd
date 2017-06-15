@@ -110,7 +110,7 @@ int mpd_put_current_song(char *buffer);
 int mpd_put_queue(char *buffer, unsigned int offset);
 int mpd_put_browse(char *buffer, char *path, unsigned int offset);
 int mpd_search(char *buffer, char *searchstr);
-int mpd_download(char *buffer, char *path, char *url);
+int mpd_download(char *buffer, char *path, char *url, char **song);
 void mpd_disconnect();
 #endif
 

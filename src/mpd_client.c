@@ -1,7 +1,7 @@
 /* ympd
    (c) 2013-2014 Andrew Karpow <andy@ndyk.de>
    This project's homepage is: http://www.ympd.org
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; version 2 of the License.
@@ -236,8 +236,13 @@ out_search:
         case MPD_DOWNLOAD:
 			if(sscanf(c->content, "MPD_DOWNLOAD,%m[^\t\n]", &p_charbuf) && p_charbuf != NULL)
             {
-				n = mpd_download(mpd.buf, mpd.music_path, p_charbuf);
+                char *song;
+				n = mpd_download(mpd.buf, mpd.music_path, p_charbuf, &song);
+                mpd_run_update(mpd.conn, "downloads");
+                sleep(1);
+                mpd_run_add(mpd.conn, song);
                 free(p_charbuf);
+                free(song);
             }
             break;
 #ifdef WITH_MPD_HOST_CHANGE
@@ -290,7 +295,7 @@ out_set_pass:
 
     if(mpd.conn_state == MPD_CONNECTED && mpd_connection_get_error(mpd.conn) != MPD_ERROR_SUCCESS)
     {
-        n = snprintf(mpd.buf, MAX_SIZE, "{\"type\":\"error\", \"data\": \"%s\"}", 
+        n = snprintf(mpd.buf, MAX_SIZE, "{\"type\":\"error\", \"data\": \"%s\"}",
             mpd_connection_get_error_message(mpd.conn));
 
         /* Try to recover error */
@@ -321,7 +326,7 @@ static int mpd_notify_callback(struct mg_connection *c, enum mg_event ev) {
     if(c->callback_param)
     {
         /* error message? */
-        n = snprintf(mpd.buf, MAX_SIZE, "{\"type\":\"error\",\"data\":\"%s\"}", 
+        n = snprintf(mpd.buf, MAX_SIZE, "{\"type\":\"error\",\"data\":\"%s\"}",
             (const char *)c->callback_param);
 
         mg_websocket_write(c, 1, mpd.buf, n);
@@ -468,9 +473,9 @@ int mpd_put_state(char *buffer, int *current_song_id, unsigned *queue_version)
         " \"single\":%d, \"crossfade\":%d, \"consume\":%d, \"random\":%d, "
         " \"songpos\": %d, \"elapsedTime\": %d, \"totalTime\":%d, "
         " \"currentsongid\": %d"
-        "}}", 
+        "}}",
         mpd_status_get_state(status),
-        mpd_status_get_volume(status), 
+        mpd_status_get_volume(status),
         mpd_status_get_repeat(status),
         mpd_status_get_single(status),
         mpd_status_get_crossfade(status),
@@ -592,18 +597,18 @@ int mpd_put_queue(char *buffer, unsigned int offset)
 }
 
 
-int mpd_download(char *buffer, char *path, char *url)
+int mpd_download(char *buffer, char *path, char *url, char **song)
 {
 	char *cur = buffer;
     const char *end = buffer + MAX_SIZE;
-	
+
 	struct stat s;
 	if (stat(path, &s) == -1 || (stat(path, &s) != -1 && !S_ISDIR(s.st_mode))){
 		fprintf(stderr, "MPD Download: please specify the path to music directory with -m option.\n");
 		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"nodir\"}");
 	}
-				
-    else if (download_stream(url, mpd.music_path) == 0){
+
+    else if (download_stream(url, mpd.music_path, song) == 0){
 		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"complete\"}");
 	}
 	else{
@@ -646,7 +651,7 @@ int mpd_put_browse(char *buffer, char *path, unsigned int offset)
         }
 
         switch (mpd_entity_get_type(entity)) {
-			
+
             case MPD_ENTITY_TYPE_UNKNOWN:
                 break;
 

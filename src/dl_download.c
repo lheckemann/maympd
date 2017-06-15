@@ -46,7 +46,7 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 
 		char cmd[2048] = "cd ";
 		strcat(cmd, dir);
-		strcat(cmd, "/downloads; youtube-dl -f 'bestaudio[ext!=aac]/bestaudio' --extract-audio --audio-format=best -o '%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s' --add-metadata ");
+		strcat(cmd, "; youtube-dl -f 'bestaudio[ext!=aac]/bestaudio' --extract-audio --audio-format=best -o '%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s' --add-metadata ");
         strcat(cmd, p_charbuf);
 
         char *name[] = {"/bin/sh", "-c", cmd, NULL };
@@ -74,7 +74,7 @@ destination_find:
 			   fp = fn+strlen(fn)+2;
 			   goto destination_find;
 			};
-            snprintf(path, 8192, "downloads/%s", fn);
+            snprintf(path, 8192, "%s", fn);
 			fprintf(stderr, "Downloaded: %s\n", path);
             *song = path;
 			return 0;

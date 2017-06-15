@@ -237,9 +237,8 @@ out_search:
 			if(sscanf(c->content, "MPD_DOWNLOAD,%m[^\t\n]", &p_charbuf) && p_charbuf != NULL)
             {
                 char *song;
-				n = mpd_download(mpd.buf, mpd.music_path, p_charbuf, &song);
-                mpd_run_update(mpd.conn, "downloads");
-                sleep(1);
+                n = mpd_download(mpd.buf, mpd.music_path, p_charbuf, &song);
+                mpd_run_update(mpd.conn, NULL);
                 mpd_run_add(mpd.conn, song);
                 free(p_charbuf);
                 free(song);

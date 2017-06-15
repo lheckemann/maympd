@@ -1,13 +1,10 @@
-[![Build Status](https://travis-ci.org/notandy/ympd.svg)](https://travis-ci.org/notandy/ympd)
-ympd
-====
+maympd
+======
 
 Standalone MPD Web GUI written in C, utilizing Websockets and Bootstrap/JS
 
-
-http://www.ympd.org
-
-![ScreenShot](http://www.ympd.org/assets/ympd_github.png)
+Fork of https://github.com/notandy/ympd with Soudcloud streaming and
+youtube-dl support.
 
 Dependencies
 ------------
@@ -33,6 +30,7 @@ Usage: ./ympd [OPTION]...
  -w, --webport [ip:]<port>  listen interface/port for webserver [8080]
  -u, --user <username>      drop priviliges to user after socket bind
  -V, --version              get version
+ -m, --musicpath <path>     set music path, required for downloading
  --help                     this help
 ```
 

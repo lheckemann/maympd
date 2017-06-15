@@ -165,11 +165,19 @@ $(document).ready(function(){
             socket.send("MPD_API_SET_SEEK,"+current_song.currentSongId+","+seekVal);
         }
     });
-    $("#downloadbtn").click(function() {
-		if ($("#downloadurl").val()){
-			$('#downloadbtn').button('loading');
-			socket.send("MPD_DOWNLOAD,"+ $("#downloadurl").val());
+    $("#download").submit(function(e) {
+        e.preventDefault();
+        var downloadUrl = $("#downloadurl").val();
+		if (downloadUrl){
+			socket.send("MPD_DOWNLOAD,"+ downloadUrl);
+			$('#downloadurl').val("");
+
+            $('.top-right').notify({
+                message:{text:"Starting download: "+downloadUrl},
+                fadeOut: { enabled: true, delay: 1000 }
+            }).show();
 		}
+        return false;
 	});
 
     $('#addstream').on('shown.bs.modal', function () {

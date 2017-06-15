@@ -66,13 +66,13 @@ int download_stream(char *p_charbuf, char *dir, char **song)
             char *fp, *fn;
             char *path = malloc(8192);
 
-			fp = res;
+			fp = fn = res;
 destination_find:
-		    fp = strstr(fp, FFMPEG_OUT) + strlen(FFMPEG_OUT);
             fn = strtok(fp, "\n");
-			if(strcmp("webm", fn + strlen(fn) - 4) == 0) {
-			   fp = fn+strlen(fn)+2;
-			   goto destination_find;
+			fp = strstr(fp+strlen(fn)+1, FFMPEG_OUT);
+			if(fp != NULL) {
+			  fp += strlen(FFMPEG_OUT);
+			  goto destination_find;
 			};
             snprintf(path, 8192, "%s", fn);
 			fprintf(stderr, "Downloaded: %s\n", path);

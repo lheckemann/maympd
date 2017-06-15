@@ -239,6 +239,7 @@ out_search:
                 char *song;
                 n = mpd_download(mpd.buf, mpd.music_path, p_charbuf, &song);
                 mpd_run_update(mpd.conn, NULL);
+                sleep(1);
                 mpd_run_add(mpd.conn, song);
                 free(p_charbuf);
                 free(song);

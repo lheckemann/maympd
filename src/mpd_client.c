@@ -240,13 +240,15 @@ out_search:
         case MPD_DOWNLOAD:
 			if(sscanf(c->content, "MPD_DOWNLOAD,%m[^\t\n]", &p_charbuf) && p_charbuf != NULL)
             {
-                char *song;
+                char *song = NULL;
                 n = mpd_download(mpd.buf, mpd.music_path, p_charbuf, &song);
-                mpd_run_update(mpd.conn, NULL);
-                sleep(1);
-                mpd_run_add(mpd.conn, song);
+                if(song != NULL) {
+                    mpd_run_update(mpd.conn, NULL);
+                    sleep(1);
+                    mpd_run_add(mpd.conn, song);
+                    free(song);
+                };
                 free(p_charbuf);
-                free(song);
             }
             break;
 #ifdef WITH_MPD_HOST_CHANGE
@@ -605,6 +607,7 @@ int mpd_download(char *buffer, char *path, char *url, char **song)
 {
 	char *cur = buffer;
     const char *end = buffer + MAX_SIZE;
+    int ret = 1;
 
 	struct stat s;
 	if (stat(path, &s) == -1 || (stat(path, &s) != -1 && !S_ISDIR(s.st_mode))){
@@ -614,6 +617,7 @@ int mpd_download(char *buffer, char *path, char *url, char **song)
 
     else if (download_stream(url, mpd.music_path, song) == 0){
 		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"complete\"}");
+        ret = 0;
 	}
 	else{
 		cur += json_emit_raw_str(cur, end  - cur, "{\"type\":\"download\",\"data\":\"failure\"}");

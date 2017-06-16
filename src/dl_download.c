@@ -46,8 +46,9 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 
 		char cmd[2048] = "cd ";
 		strcat(cmd, dir);
-		strcat(cmd, "; youtube-dl -f 'bestaudio[ext!=aac]/bestaudio' --extract-audio --audio-format=best -o '%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s' --add-metadata ");
+		strcat(cmd, "; youtube-dl -f 'bestaudio[ext!=aac]/bestaudio' --extract-audio --audio-format=best -o '%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s' --add-metadata --newline '");
         strcat(cmd, p_charbuf);
+        strcat(cmd, "'");
 
         char *name[] = {"/bin/sh", "-c", cmd, NULL };
         execvp(name[0], name);
@@ -61,22 +62,23 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 		read(pipefd[0], res, sizeof(res));
 		if(strstr(res, "100%") != NULL)
 		{
-			fprintf(stderr, "%s\n", res);
-            char *FFMPEG_OUT = "] Destination: ";
-            char *fp, *fn;
-            char *path = malloc(8192);
+		  char *FFMPEG_OUT = "[ffmpeg] Adding metadata to '";
+		  char *path = malloc(8192);
+		  char *fp, *token, *saveptr;
 
-			fp = fn = res;
-destination_find:
-            fn = strtok(fp, "\n");
-			fp = strstr(fp+strlen(fn)+1, FFMPEG_OUT);
+		  for(fp = res; ; fp = NULL) {
+			token = strtok_r(fp, "\n", &saveptr);
+			if(token == NULL) break;
+			fprintf(stderr, "%s\n", token);
+			fp = strstr(token, FFMPEG_OUT);
 			if(fp != NULL) {
-			  fp += strlen(FFMPEG_OUT);
-			  goto destination_find;
+			  snprintf(path, 8192, "%s", fp+strlen(FFMPEG_OUT));
+			  path[strlen(path)-1] = '\0';
 			};
-            snprintf(path, 8192, "%s", fn);
-			fprintf(stderr, "Downloaded: %s\n", path);
-            *song = path;
+		  };
+
+		  fprintf(stderr, "Downloaded: %s\n", path);
+		  *song = path;
 			return 0;
 		}
 		else

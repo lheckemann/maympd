@@ -1498,7 +1498,7 @@ table th[class*="col-"] {
 .table-hover > tbody > tr > th.active:hover,
 .table-hover > tbody > tr.active:hover > td,
 .table-hover > tbody > tr.active:hover > th {
-  background-color: #e8e8e8;
+  background-color: #232323;
 }
 .table > thead > tr > td.success,
 .table > tbody > tr > td.success,

@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <errno.h>
 #include <mpd/client.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -44,15 +45,26 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 		close(pipefd[0]);  /* close unused read end */
 		dup2(pipefd[1], STDOUT_FILENO);
 
-		char cmd[2048] = "cd ";
-		strcat(cmd, dir);
-		strcat(cmd, "; youtube-dl -f 'bestaudio[ext!=aac]/bestaudio' --extract-audio --audio-format=best -o '%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s' --add-metadata --newline '");
-        strcat(cmd, p_charbuf);
-        strcat(cmd, "'");
+		if(chdir(dir)) {
+			fprintf(stderr, "chdir %s: %s", dir, strerror(errno));
+			_exit(EXIT_FAILURE);
+		}
 
-        char *name[] = {"/bin/sh", "-c", cmd, NULL };
-        execvp(name[0], name);
-        _exit(EXIT_FAILURE);
+		char *cmd[] = {
+			"youtube-dl",
+			"-f", "bestaudio[ext!=aac]/bestaudio",
+			"--extract-audio",
+			"--audio-format=best",
+			"-o", "%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s",
+			"--add-metadata",
+			"--newline",
+			"--no-mtime",
+			"--",
+			p_charbuf,
+			NULL
+		};
+		execvp(cmd[0], cmd);
+		_exit(EXIT_FAILURE);
 
 	}
 	else

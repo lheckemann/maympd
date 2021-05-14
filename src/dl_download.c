@@ -55,7 +55,7 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 			"-f", "bestaudio[ext!=aac]/bestaudio",
 			"--extract-audio",
 			"--audio-format=best",
-			"-o", "%(extractor_key)s/%(uploader)s/%(uploader)s-%(title)s-%(id)s.%(ext)s",
+			"-o", "%(title)s-%(id)s.%(ext)s",
 			"--add-metadata",
 			"--newline",
 			"--no-mtime",

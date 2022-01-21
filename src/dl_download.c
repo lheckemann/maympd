@@ -51,7 +51,7 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 		}
 
 		char *cmd[] = {
-			"youtube-dl",
+			"yt-dlp",
 			"-f", "bestaudio[ext!=aac]/bestaudio",
 			"--extract-audio",
 			"--audio-format=best",
@@ -74,7 +74,7 @@ int download_stream(char *p_charbuf, char *dir, char **song)
 		read(pipefd[0], res, sizeof(res));
 		if(strstr(res, "100%") != NULL)
 		{
-		  char *FFMPEG_OUT = "[ffmpeg] Adding metadata to '";
+		  char *FFMPEG_OUT = "[Metadata] Adding metadata to \"";
 		  char *path = malloc(8192);
 		  char *fp, *token, *saveptr;
 
